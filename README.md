@@ -189,7 +189,8 @@ src/
 │   │   ├── historico/
 │   │   │   └── [id]/           Detalle del entrenamiento
 │   │   └── perfil/
-│   ├── error.tsx               Incluye ayuda si falta configurar Supabase
+│   ├── error.tsx               Error genérico + digest para buscar en los logs
+│   ├── layout.tsx              Muestra el aviso de configuración si falta Supabase
 │   └── not-found.tsx
 │
 ├── components/

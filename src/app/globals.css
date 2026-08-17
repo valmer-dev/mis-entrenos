@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+/*
+ * Sistema de diseño — tema oscuro único.
+ *
+ * La aplicación se usa en el gimnasio, con el móvil en la mano y a menudo con
+ * poca luz, así que se decide un único tema oscuro en lugar de duplicar la
+ * paleta. Es una elección de producto, no una limitación.
+ *
+ * Los colores de datos (barras de las gráficas) salen de una paleta validada
+ * para daltonismo y contraste sobre esta superficie concreta. La identidad de
+ * cada actividad la lleva su icono (🏋️ 🚴 🚶 🏃), nunca el color: así se lee
+ * igual de bien con cualquier tipo de visión.
+ */
+
+@theme {
+  /* Superficies */
+  --color-plane: #0a0a0b;
+  --color-surface: #141417;
+  --color-surface-raised: #1d1d22;
+  --color-border: #27272d;
+  --color-border-strong: #35353d;
+
+  /* Texto */
+  --color-ink: #fafafa;
+  --color-ink-secondary: #a8a8b3;
+  --color-ink-muted: #8b8b95;
+
+  /* Acento (hue único para todas las marcas de datos) */
+  --color-accent: #3987e5;
+  --color-accent-strong: #256abf;
+  --color-accent-dim: #1c5cab;
+
+  /* Estados */
+  --color-danger: #e66767;
+  --color-success: #0ca30c;
+
+  --font-sans:
+    var(--font-geist-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --radius-card: 1rem;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  background-color: var(--color-plane);
+  color: var(--color-ink);
+}
+
+body {
+  font-family: var(--font-sans);
+  /* Evita el rebote horizontal en móvil cuando una gráfica se desborda. */
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Respeta el notch y la barra de gestos de iOS en la navegación inferior. */
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+@utility h-safe-nav {
+  height: calc(4rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* Foco visible y consistente en toda la aplicación. */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

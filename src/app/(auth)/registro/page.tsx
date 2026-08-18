@@ -11,7 +11,7 @@ export default function RegisterPage() {
   return (
     <>
       <header className="mb-8">
-        <p className="text-ink-muted text-sm font-medium">Mis Entrenos</p>
+        <p className="text-ink-muted text-sm font-medium">Workout Tracker</p>
         <h1 className="text-ink mt-1 text-3xl font-semibold tracking-tight">
           Crea tu cuenta
         </h1>

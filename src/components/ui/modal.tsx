@@ -48,7 +48,7 @@ export function Modal({
         if (event.target === dialogRef.current) onClose();
       }}
       aria-labelledby="modal-title"
-      className="bg-surface border-border text-ink open:flex m-auto w-[min(28rem,calc(100vw-2rem))] flex-col rounded-2xl border p-6 backdrop:bg-black/70 backdrop:backdrop-blur-sm"
+      className="bg-surface border-border text-ink backdrop-themed open:flex m-auto w-[min(28rem,calc(100vw-2rem))] flex-col rounded-2xl border p-6 backdrop:backdrop-blur-sm"
     >
       <h2 id="modal-title" className="text-lg font-semibold text-balance">
         {title}

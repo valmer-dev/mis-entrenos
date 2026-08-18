@@ -1,39 +1,43 @@
 @import "tailwindcss";
 
 /*
- * Sistema de diseño — tema oscuro único.
+ * Sistema de diseño.
  *
- * La aplicación se usa en el gimnasio, con el móvil en la mano y a menudo con
- * poca luz, así que se decide un único tema oscuro en lugar de duplicar la
- * paleta. Es una elección de producto, no una limitación.
+ * Hay dos temas, claro y oscuro, y ambos son elegidos: el oscuro no es el claro
+ * invertido. Los valores están comprobados uno a uno contra su propia
+ * superficie (texto ≥ 4.5:1, marcas de datos ≥ 3:1).
  *
  * Los colores de datos (barras de las gráficas) salen de una paleta validada
- * para daltonismo y contraste sobre esta superficie concreta. La identidad de
- * cada actividad la lleva su icono (🏋️ 🚴 🚶 🏃), nunca el color: así se lee
- * igual de bien con cualquier tipo de visión.
+ * para daltonismo. La identidad de cada actividad la lleva su icono
+ * (🏋️ 🚴 🚶 🏃), nunca el color: así se lee igual con cualquier tipo de visión.
+ *
+ * El truco que mantiene todo coherente: `plane` (el fondo de página) es casi
+ * blanco en claro y casi negro en oscuro, así que el texto sobre el color de
+ * acento (`bg-accent text-plane`) contrasta bien en los dos temas sin ninguna
+ * regla especial — 5.03:1 en claro, 5.44:1 en oscuro.
  */
 
-@theme {
+@theme inline {
   /* Superficies */
-  --color-plane: #0a0a0b;
-  --color-surface: #141417;
-  --color-surface-raised: #1d1d22;
-  --color-border: #27272d;
-  --color-border-strong: #35353d;
+  --color-plane: var(--plane);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
 
   /* Texto */
-  --color-ink: #fafafa;
-  --color-ink-secondary: #a8a8b3;
-  --color-ink-muted: #8b8b95;
+  --color-ink: var(--ink);
+  --color-ink-secondary: var(--ink-secondary);
+  --color-ink-muted: var(--ink-muted);
 
   /* Acento (hue único para todas las marcas de datos) */
-  --color-accent: #3987e5;
-  --color-accent-strong: #256abf;
-  --color-accent-dim: #1c5cab;
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-dim: var(--accent-dim);
 
   /* Estados */
-  --color-danger: #e66767;
-  --color-success: #0ca30c;
+  --color-danger: var(--danger);
+  --color-success: var(--success);
 
   --font-sans:
     var(--font-geist-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -41,14 +45,92 @@
   --radius-card: 1rem;
 }
 
+/* --------------------------------------------------------------------------
+ * Tema claro (por defecto)
+ * ------------------------------------------------------------------------ */
 :root {
+  color-scheme: light;
+
+  --plane: #f7f7f5;
+  --surface: #ffffff;
+  --surface-raised: #f0efec;
+  --border: #e3e2dc;
+  --border-strong: #c9c8c0;
+
+  --ink: #16161a;
+  --ink-secondary: #52514e;
+  --ink-muted: #6f6e69;
+
+  --accent: #256abf;
+  --accent-strong: #1c5cab;
+  --accent-dim: #86b6ef;
+
+  --danger: #c62f2f;
+  --success: #006300;
+
+  --backdrop: rgb(22 22 26 / 0.45);
+}
+
+/* --------------------------------------------------------------------------
+ * Tema oscuro
+ *
+ * Se declara dos veces a propósito: el bloque de media query cubre la
+ * preferencia del sistema, y el de `[data-theme="dark"]` cubre la elección
+ * explícita del usuario. El `:not([data-theme="light"])` del primero permite
+ * que quien elija "claro" gane sobre un sistema en oscuro.
+ * ------------------------------------------------------------------------ */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --plane: #0a0a0b;
+    --surface: #141417;
+    --surface-raised: #1d1d22;
+    --border: #27272d;
+    --border-strong: #35353d;
+
+    --ink: #fafafa;
+    --ink-secondary: #a8a8b3;
+    --ink-muted: #8b8b95;
+
+    --accent: #3987e5;
+    --accent-strong: #256abf;
+    --accent-dim: #1c5cab;
+
+    --danger: #e66767;
+    --success: #0ca30c;
+
+    --backdrop: rgb(0 0 0 / 0.7);
+  }
+}
+
+:root[data-theme="dark"] {
   color-scheme: dark;
+
+  --plane: #0a0a0b;
+  --surface: #141417;
+  --surface-raised: #1d1d22;
+  --border: #27272d;
+  --border-strong: #35353d;
+
+  --ink: #fafafa;
+  --ink-secondary: #a8a8b3;
+  --ink-muted: #8b8b95;
+
+  --accent: #3987e5;
+  --accent-strong: #256abf;
+  --accent-dim: #1c5cab;
+
+  --danger: #e66767;
+  --success: #0ca30c;
+
+  --backdrop: rgb(0 0 0 / 0.7);
 }
 
 html,
 body {
-  background-color: var(--color-plane);
-  color: var(--color-ink);
+  background-color: var(--plane);
+  color: var(--ink);
 }
 
 body {
@@ -67,10 +149,17 @@ body {
   height: calc(4rem + env(safe-area-inset-bottom, 0px));
 }
 
+/* Fondo del diálogo modal, distinto en cada tema. */
+@utility backdrop-themed {
+  &::backdrop {
+    background-color: var(--backdrop);
+  }
+}
+
 /* Foco visible y consistente en toda la aplicación. */
 @layer base {
   :focus-visible {
-    outline: 2px solid var(--color-accent);
+    outline: 2px solid var(--accent);
     outline-offset: 2px;
   }
 }

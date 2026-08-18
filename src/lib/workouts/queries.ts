@@ -337,7 +337,7 @@ export async function getProfileSummary(): Promise<ProfileSummary> {
     const workouts = await listDemoWorkouts(new Date(), timeZone);
 
     return {
-      email: "demo@misentrenos.app",
+      email: "demo@workouttracker.app",
       displayName: "Modo demostración",
       memberSince:
         workouts.at(-1)?.started_at ?? new Date().toISOString(),

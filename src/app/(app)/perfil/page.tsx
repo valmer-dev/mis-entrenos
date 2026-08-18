@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 
+import { ThemeToggle } from "@/components/app/theme-toggle";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { isDemoMode } from "@/lib/demo/store";
@@ -9,6 +11,7 @@ import { toCivilDate } from "@/lib/date/civil";
 import { formatCivilDate, formatDuration } from "@/lib/date/format";
 import { getUserTimeZone } from "@/lib/date/timezone";
 import { signOut } from "@/lib/auth/actions";
+import { THEME_COOKIE, parseTheme } from "@/lib/theme/theme";
 import { getProfileSummary } from "@/lib/workouts/queries";
 
 export const metadata: Metadata = {
@@ -20,6 +23,8 @@ export const dynamic = "force-dynamic";
 export default async function ProfilePage() {
   const profile = await getProfileSummary();
   const timeZone = await getUserTimeZone();
+  const cookieStore = await cookies();
+  const theme = parseTheme(cookieStore.get(THEME_COOKIE)?.value);
 
   return (
     <div className="space-y-6">
@@ -64,6 +69,14 @@ export default async function ProfilePage() {
           hint="En total"
         />
       </div>
+
+      <Card>
+        <h2 className="text-ink mb-1 text-sm font-semibold">Apariencia</h2>
+        <p className="text-ink-muted mb-4 text-xs">
+          &quot;Sistema&quot; sigue la configuración de tu móvil.
+        </p>
+        <ThemeToggle initialTheme={theme} />
+      </Card>
 
       {/*
         En modo demostración no hay sesión que cerrar; lo útil ahí es explicar

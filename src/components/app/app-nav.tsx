@@ -119,7 +119,7 @@ export function SideNav() {
       className="border-border bg-plane fixed inset-y-0 left-0 z-40 hidden w-60 flex-col border-r px-4 py-8 md:flex"
     >
       <p className="text-ink px-3 text-base font-semibold tracking-tight">
-        Mis Entrenos
+        Workout Tracker
       </p>
 
       <ul className="mt-8 space-y-1">

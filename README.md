@@ -1,11 +1,11 @@
-# Mis Entrenos
+# Workout Tracker
 
 Tracker personal de entrenamientos: cronómetro fiable, guardado automático en
 Supabase y un dashboard con estadísticas calculadas a partir de los
 entrenamientos reales.
 
-Pensado para usarse **desde el móvil, en el gimnasio**: tema oscuro, botones
-grandes y navegación inferior al alcance del pulgar.
+Pensado para usarse **desde el móvil, en el gimnasio**: botones grandes,
+navegación inferior al alcance del pulgar y tema claro u oscuro.
 
 ---
 
@@ -82,6 +82,29 @@ ningún punto de la aplicación** y nunca debe ponerse en una variable
 `.env.local` está en `.gitignore`; `.env.example` (sin valores) sí se versiona.
 
 ---
+
+## Temas claro y oscuro
+
+Se elige en **Perfil → Apariencia**, entre `Sistema`, `Claro` y `Oscuro`.
+
+Los dos temas están diseñados por separado — el claro no es el oscuro invertido
+— y sus colores están comprobados uno a uno contra su propia superficie: texto
+≥ 4.5:1 y marcas de datos ≥ 3:1.
+
+Dos detalles de implementación que evitan los fallos típicos de un selector de
+tema:
+
+- **La preferencia va en una cookie, no en `localStorage`.** El servidor la lee
+  y manda el `data-theme` ya puesto en el HTML, así que la página nunca aparece
+  un instante con el tema equivocado.
+- **El tema explícito gana sobre el del sistema en ambos sentidos.** Elegir
+  "Claro" con el móvil en modo oscuro funciona, que es justo el caso que suele
+  romperse (`:root:not([data-theme="light"])` dentro de la media query).
+
+Un truco mantiene la coherencia sin reglas especiales: `plane` (el fondo de
+página) es casi blanco en claro y casi negro en oscuro, de modo que el texto
+sobre el color de acento (`bg-accent text-plane`) contrasta bien en los dos
+temas — 5.03:1 y 5.44:1.
 
 ## Modo demostración
 

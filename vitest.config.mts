@@ -5,6 +5,12 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
+      // `server-only` aborta al importarse fuera de un Server Component, que es
+      // exactamente lo que debe hacer en la aplicación pero impide testear los
+      // módulos que lo declaran.
+      "server-only": fileURLToPath(
+        new URL("./src/test/server-only-stub.ts", import.meta.url),
+      ),
     },
   },
   test: {

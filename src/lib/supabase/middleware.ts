@@ -6,7 +6,10 @@ import type { Database } from "@/types/database";
 import { hasSupabaseEnv, getSupabaseEnv } from "./env";
 
 /** Rutas accesibles sin haber iniciado sesión. */
-const PUBLIC_ROUTES = ["/login", "/registro"];
+const PUBLIC_ROUTES = ["/login", "/registro", "/configurar"];
+
+/** Rutas de autenticación, que en modo demostración no tienen sentido. */
+const AUTH_ROUTES = ["/login", "/registro"];
 
 function isPublicRoute(pathname: string): boolean {
   return PUBLIC_ROUTES.some(
@@ -30,9 +33,20 @@ function isPublicRoute(pathname: string): boolean {
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
 
-  // Sin variables de entorno no hay nada que refrescar; dejamos pasar para que
-  // la aplicación pueda mostrar un mensaje de configuración en lugar de un 500.
-  if (!hasSupabaseEnv()) return response;
+  // Modo demostración: sin Supabase no hay sesión que refrescar ni que proteger.
+  // Se deja pasar todo y se redirige el login, que ahí no lleva a ninguna parte.
+  if (!hasSupabaseEnv()) {
+    const { pathname } = request.nextUrl;
+
+    if (AUTH_ROUTES.some((route) => pathname.startsWith(route))) {
+      const dashboardUrl = request.nextUrl.clone();
+      dashboardUrl.pathname = "/dashboard";
+      dashboardUrl.search = "";
+      return NextResponse.redirect(dashboardUrl);
+    }
+
+    return response;
+  }
 
   const { url, anonKey } = getSupabaseEnv();
 

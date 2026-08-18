@@ -3,6 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import {
+  deleteDemoWorkout,
+  discardDemoWorkout,
+  finishDemoWorkout,
+  isDemoMode,
+  startDemoWorkout,
+} from "@/lib/demo/store";
 import { isGymType, isWorkoutType } from "@/lib/domain/workout";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { WorkoutActionState } from "@/lib/workouts/state";
@@ -54,6 +61,22 @@ export async function startWorkout(
     return { status: "error", message: "Selecciona qué vas a entrenar." };
   }
 
+  if (isDemoMode()) {
+    const result = await startDemoWorkout(
+      type,
+      isGymType(gymType) ? gymType : null,
+    );
+
+    if (!result.ok) {
+      // Ya había uno en curso: llevar al cronómetro es lo que se espera.
+      revalidateWorkoutViews();
+      redirect("/entrenar");
+    }
+
+    revalidateWorkoutViews();
+    redirect("/entrenar");
+  }
+
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
@@ -99,6 +122,12 @@ export async function finishWorkout(
   const rawNotes = String(formData.get("notes") ?? "").trim();
   const notes = rawNotes ? rawNotes.slice(0, MAX_NOTES_LENGTH) : null;
 
+  if (isDemoMode()) {
+    const savedId = await finishDemoWorkout(notes);
+    revalidateWorkoutViews();
+    redirect(`/entrenar/completado/${savedId ?? id}`);
+  }
+
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
@@ -142,6 +171,12 @@ export async function discardWorkout(formData: FormData): Promise<void> {
   const id = String(formData.get("id") ?? "");
   if (!id) return;
 
+  if (isDemoMode()) {
+    await discardDemoWorkout();
+    revalidateWorkoutViews();
+    redirect("/entrenar");
+  }
+
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
@@ -164,6 +199,12 @@ export async function discardWorkout(formData: FormData): Promise<void> {
 export async function deleteWorkout(formData: FormData): Promise<void> {
   const id = String(formData.get("id") ?? "");
   if (!id) return;
+
+  if (isDemoMode()) {
+    await deleteDemoWorkout(id);
+    revalidateWorkoutViews();
+    redirect("/historico");
+  }
 
   const supabase = await createSupabaseServerClient();
   const {

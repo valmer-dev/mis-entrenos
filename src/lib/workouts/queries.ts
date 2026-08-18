@@ -1,5 +1,11 @@
 import "server-only";
 
+import {
+  getDemoActiveWorkout,
+  getDemoWorkoutById,
+  isDemoMode,
+  listDemoWorkouts,
+} from "@/lib/demo/store";
 import { getUserTimeZone } from "@/lib/date/timezone";
 import {
   type PeriodId,
@@ -55,6 +61,8 @@ async function requireUserId(): Promise<string> {
  * dispositivo. Un índice único parcial garantiza que no puede haber dos.
  */
 export async function getActiveWorkout(): Promise<Workout | null> {
+  if (isDemoMode()) return getDemoActiveWorkout();
+
   const supabase = await createSupabaseServerClient();
   const userId = await requireUserId();
 
@@ -72,6 +80,10 @@ export async function getActiveWorkout(): Promise<Workout | null> {
 }
 
 export async function getWorkoutById(id: string): Promise<Workout | null> {
+  if (isDemoMode()) {
+    return getDemoWorkoutById(id, new Date(), await getUserTimeZone());
+  }
+
   const supabase = await createSupabaseServerClient();
   const userId = await requireUserId();
 
@@ -110,6 +122,12 @@ const RECENT_WORKOUTS_LIMIT = 5;
 export async function getDashboardData(
   periodId: PeriodId,
 ): Promise<DashboardData> {
+  const timeZoneForDemo = isDemoMode() ? await getUserTimeZone() : null;
+
+  if (timeZoneForDemo) {
+    return buildDemoDashboardData(periodId, timeZoneForDemo);
+  }
+
   const supabase = await createSupabaseServerClient();
   const userId = await requireUserId();
   const timeZone = await getUserTimeZone();
@@ -172,6 +190,46 @@ export async function getDashboardData(
   };
 }
 
+/**
+ * Misma forma de datos que `getDashboardData`, pero calculada sobre los
+ * entrenamientos de la demo. El filtrado por rango se hace en memoria porque
+ * aquí no hay ningún motor de consultas detrás.
+ */
+async function buildDemoDashboardData(
+  periodId: PeriodId,
+  timeZone: string,
+): Promise<DashboardData> {
+  const now = new Date();
+  const range = resolvePeriodRange(periodId, now, timeZone);
+  const week = resolveCurrentWeekRange(now, timeZone);
+
+  const all = await listDemoWorkouts(now, timeZone);
+
+  const startedWithin = (workout: WorkoutListItem, from: Date | null, to: Date) => {
+    const startedAt = new Date(workout.started_at).getTime();
+    return (
+      startedAt < to.getTime() && (!from || startedAt >= from.getTime())
+    );
+  };
+
+  const inPeriod = all.filter((workout) =>
+    startedWithin(workout, range.from, range.to),
+  );
+  const recentWorkouts = all.slice(0, RECENT_WORKOUTS_LIMIT);
+
+  return {
+    periodId,
+    timeZone,
+    stats: computeDashboardStats(inPeriod, range, now, timeZone),
+    recentWorkouts,
+    lastWorkout: recentWorkouts[0] ?? null,
+    workoutsThisWeek: all.filter((workout) =>
+      startedWithin(workout, week.from, week.to),
+    ).length,
+    hasAnyWorkout: all.length > 0,
+  };
+}
+
 export type HistoryFilters = {
   type: WorkoutType | "all";
   range: "all" | "week" | "month" | "last30";
@@ -187,6 +245,8 @@ export type HistoryData = {
 const HISTORY_LIMIT = 500;
 
 export async function getHistory(filters: HistoryFilters): Promise<HistoryData> {
+  if (isDemoMode()) return buildDemoHistory(filters);
+
   const supabase = await createSupabaseServerClient();
   const userId = await requireUserId();
   const timeZone = await getUserTimeZone();
@@ -238,6 +298,31 @@ export async function getHistory(filters: HistoryFilters): Promise<HistoryData> 
   };
 }
 
+async function buildDemoHistory(filters: HistoryFilters): Promise<HistoryData> {
+  const timeZone = await getUserTimeZone();
+  const now = new Date();
+  const all = await listDemoWorkouts(now, timeZone);
+
+  let workouts = all;
+
+  if (filters.type !== "all") {
+    workouts = workouts.filter((workout) => workout.type === filters.type);
+  }
+
+  if (filters.range !== "all") {
+    const range = resolvePeriodRange(filters.range, now, timeZone);
+    workouts = workouts.filter((workout) => {
+      const startedAt = new Date(workout.started_at).getTime();
+      return (
+        startedAt < range.to.getTime() &&
+        (!range.from || startedAt >= range.from.getTime())
+      );
+    });
+  }
+
+  return { workouts, timeZone, hasAnyWorkout: all.length > 0 };
+}
+
 export type ProfileSummary = {
   email: string;
   displayName: string | null;
@@ -247,6 +332,23 @@ export type ProfileSummary = {
 };
 
 export async function getProfileSummary(): Promise<ProfileSummary> {
+  if (isDemoMode()) {
+    const timeZone = await getUserTimeZone();
+    const workouts = await listDemoWorkouts(new Date(), timeZone);
+
+    return {
+      email: "demo@misentrenos.app",
+      displayName: "Modo demostración",
+      memberSince:
+        workouts.at(-1)?.started_at ?? new Date().toISOString(),
+      totalWorkouts: workouts.length,
+      totalSeconds: workouts.reduce(
+        (total, workout) => total + (workout.duration_seconds ?? 0),
+        0,
+      ),
+    };
+  }
+
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },

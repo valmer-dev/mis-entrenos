@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 
-import { Button } from "@/components/ui/button";
+import { Button, ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { isDemoMode } from "@/lib/demo/store";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatCard } from "@/components/ui/stat-card";
 import { toCivilDate } from "@/lib/date/civil";
@@ -64,11 +65,26 @@ export default async function ProfilePage() {
         />
       </div>
 
-      <form action={signOut}>
-        <Button type="submit" variant="secondary" size="lg" className="w-full">
-          Cerrar sesión
-        </Button>
-      </form>
+      {/*
+        En modo demostración no hay sesión que cerrar; lo útil ahí es explicar
+        cómo conectar Supabase para empezar a guardar entrenamientos de verdad.
+      */}
+      {isDemoMode() ? (
+        <ButtonLink
+          href="/configurar"
+          variant="secondary"
+          size="lg"
+          className="w-full"
+        >
+          Conectar Supabase
+        </ButtonLink>
+      ) : (
+        <form action={signOut}>
+          <Button type="submit" variant="secondary" size="lg" className="w-full">
+            Cerrar sesión
+          </Button>
+        </form>
+      )}
     </div>
   );
 }

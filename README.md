@@ -83,6 +83,31 @@ ningún punto de la aplicación** y nunca debe ponerse en una variable
 
 ---
 
+## Modo demostración
+
+**Si no hay variables de entorno, la aplicación arranca en modo demostración**
+en lugar de fallar: se puede navegar entera, con un historial de ejemplo,
+estadísticas calculadas de verdad sobre esos datos y el cronómetro funcionando.
+Sirve para ver la interfaz antes de montar nada.
+
+Cómo está hecho, y por qué así:
+
+- **Se activa solo cuando falta la configuración de Supabase**, y no hay ninguna
+  variable ni interruptor que lo fuerce. Es imposible que aparezcan datos de
+  ejemplo en una instalación real: en cuanto se definen las dos variables, el
+  modo demo desaparece por completo. Hay un test que fija ese contrato
+  (`src/lib/demo/store.test.ts`).
+- Los entrenamientos de ejemplo **se generan al vuelo** a partir de la fecha de
+  hoy y nunca se guardan en ningún sitio.
+- Lo que se crea durante la demo vive en una **cookie**, lo justo para que el
+  cronómetro sobreviva a recargas, que es lo que interesa poder probar.
+- Un **aviso permanente y no descartable** aparece en todas las pantallas: el
+  riesgo de este modo es confundir sus datos con los propios.
+
+El código está aislado en `src/lib/demo/`, y las capas de datos
+(`lib/workouts/queries.ts` y `actions.ts`) sólo tienen una bifurcación al
+principio de cada función.
+
 ## Configuración de Supabase
 
 1. Crear un proyecto en <https://supabase.com/dashboard>.
